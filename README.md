@@ -2,6 +2,8 @@
 
 ASCII FX converts video, images, or webcam streams into ASCII art with multiple export options (PNG, text, GIF, HQ MP4, live recording).
 
+https://github.com/user-attachments/assets/73469596-e056-4bf0-94f6-c75a3b23b12b
+
 > Code and documentation generated with Claude Opus 4.5 and GPT-5.1 Codex.
 
 ## Features
