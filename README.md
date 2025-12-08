@@ -40,3 +40,5 @@ https://github.com/user-attachments/assets/73469596-e056-4bf0-94f6-c75a3b23b12b
 1. Install dependencies: `npm install`
 2. Start dev server: `npm run dev`
 3. Open the printed local URL in your browser.
+
+![ASCIIFX Screenshot](https://github.com/user-attachments/assets/2f7c3e4d-e7d5-47df-9910-a3f854838b73)
