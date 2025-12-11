@@ -68,10 +68,16 @@ declare global {
 // --- Constants ---
 const DENSITY_SETS = {
   standard: " .:-=+*#%@",
-  complex: " .'`^\",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$",
+  complex: " .'`^,:;Il!i~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$",
   blocks: " ░▒▓█",
   matrix: " 01",
-  minimal: " /\\"
+  minimal: " / ",
+  hiragana: " 。ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをん",
+  katakana: " ・ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶ",
+  hangul: " ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣ가나다라마바사아자차카타파하",
+  chinese: " 一二三四五六七八九十百千万亿人口大中小上下左右前后东西南北天地日月星",
+  devanagari: " ँंःअआइईउऊऋएऐओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह",
+  mix: "r카ワIpㄹ日다xㅋㅕぶはけ-ぜえド*छぺウऐ星^_ゼ八アよネロり前U中!~スがコルरかデ大자ダぃㅇग8あにईたヅ三キO九ण1ヤゑサラプヲソュオ'口ㅈレलブリめの:ハすビㅍセで+|ऊi@nツび$Zん一타ゾ चく라마まइघ하むぼㅅヱァ;qずクdせJìおアヶラょソゼフウदズヒछぽけ힣난도テむう서バげズょルダहSㅜイथボセ윽ㅣケタエヘ츠レक마डズヰ피プ스ミモメへょㅗカャюギバワ트으오기णネッへП댜ॐ촣टवジぼभしनョ좌グマざ를ハへゐスペァ옹थアブな감の모ई가은테へめロ엉आ라마손मにहドレx츠ыユ숫मㄴしशけजめヒし오木대เथ京ゆ龍ぢセヱむ두と부사ㅊのकエ음च덱कムय京ボ寅",
 };
 
 const FONT_FAMILIES = {
@@ -320,7 +326,7 @@ export default function App() {
   const isBusy = recordingState !== 'idle';
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     source: true,      // Expanded by default
-    playback: false,   // Collapsed by default
+    playback: true,    // Expanded by default
     appearance: false, // Collapsed by default
     preprocess: false, // Collapsed by default
     export: false,     // Collapsed by default
