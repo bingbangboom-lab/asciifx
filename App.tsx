@@ -16,6 +16,9 @@ import {
   VolumeX,
   Volume2,
   Download,
+  ChevronDown,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import { Output, Mp4OutputFormat, BufferTarget, EncodedPacket, EncodedVideoPacketSource, EncodedAudioPacketSource } from 'mediabunny';
 import { GIFEncoder, quantize, applyPalette } from 'gifenc';
@@ -246,12 +249,35 @@ const getAsciiString = (
 
 // --- Components ---
 
-const ControlGroup = ({ title, children }: { title: string, children?: React.ReactNode }) => (
+const ControlGroup = ({ 
+  title, 
+  children, 
+  isExpanded = true, 
+  onToggle 
+}: { 
+  title: string, 
+  children?: React.ReactNode,
+  isExpanded?: boolean,
+  onToggle?: () => void
+}) => (
   <div className="mb-6 border-b border-cyan-900/50 pb-4 last:border-0">
-    <h3 className="text-cyan-400 font-bold mb-3 text-xs uppercase tracking-widest flex items-center gap-2">
-      <Zap size={12} /> {title}
-    </h3>
-    <div className="grid gap-4">
+    <button 
+      onClick={onToggle}
+      className="w-full text-cyan-400 font-bold mb-3 text-xs uppercase tracking-widest flex items-center justify-between gap-2 hover:text-cyan-300 transition-colors"
+    >
+      <span className="flex items-center gap-2">
+        <Zap size={12} /> {title}
+      </span>
+      <ChevronDown 
+        size={14} 
+        className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
+      />
+    </button>
+    <div 
+      className={`grid gap-4 overflow-hidden transition-all duration-200 ${
+        isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+      }`}
+    >
       {children}
     </div>
   </div>
@@ -292,6 +318,19 @@ export default function App() {
   const [renderStatus, setRenderStatus] = useState<string>("");
   const [isMuted, setIsMuted] = useState(true);
   const isBusy = recordingState !== 'idle';
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    source: true,      // Expanded by default
+    playback: false,   // Collapsed by default
+    appearance: false, // Collapsed by default
+    preprocess: false, // Collapsed by default
+    export: false,     // Collapsed by default
+  });
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -946,7 +985,7 @@ export default function App() {
   return (
     <div className="h-screen bg-black text-cyan-400 font-sans selection:bg-cyan-900 selection:text-white overflow-hidden flex flex-col">
       {/* Header */}
-      <header className="h-14 border-b border-cyan-900/50 flex items-center justify-between px-6 bg-black/80 backdrop-blur-md sticky top-0 z-50">
+      <header className={`h-14 border-b border-cyan-900/50 flex items-center justify-between px-6 bg-black/80 backdrop-blur-md sticky top-0 z-50 ${isFullscreen ? 'hidden' : ''}`}>
         <div className="flex items-center gap-2">
           <Monitor className="text-cyan-400" />
           <h1 className="text-xl font-bold tracking-[0.2em] font-mono">ASCII<span className="text-white">FX</span></h1>
@@ -961,9 +1000,9 @@ export default function App() {
       <main className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
         
         {/* Sidebar Controls */}
-        <aside className="w-full md:w-80 max-h-[50vh] md:max-h-none border-b md:border-b-0 md:border-r border-cyan-900/50 bg-black/50 p-4 md:p-6 overflow-y-auto">
+        <aside className={`w-full md:w-80 max-h-[50vh] md:max-h-none border-b md:border-b-0 md:border-r border-cyan-900/50 bg-black/50 p-4 md:p-6 overflow-y-auto ${isFullscreen ? 'hidden' : ''}`}>
           
-          <ControlGroup title="Source">
+          <ControlGroup title="Source" isExpanded={expandedSections.source} onToggle={() => toggleSection('source')}>
             <div className="flex flex-col gap-2">
                 <div className="flex gap-2">
                     <label className="flex-1 flex items-center justify-center gap-2 bg-cyan-900/20 hover:bg-cyan-900/40 border border-cyan-800 hover:border-cyan-500 text-cyan-400 py-3 rounded-lg cursor-pointer transition-all">
@@ -991,7 +1030,7 @@ export default function App() {
           </ControlGroup>
 
           {source?.type !== 'image' && (
-              <ControlGroup title="Playback">
+              <ControlGroup title="Playback" isExpanded={expandedSections.playback} onToggle={() => toggleSection('playback')}>
                 <div className="flex gap-2">
                   <button 
                     onClick={() => setIsPlaying(!isPlaying)}
@@ -1013,7 +1052,7 @@ export default function App() {
               </ControlGroup>
           )}
 
-          <ControlGroup title="Appearance">
+          <ControlGroup title="Appearance" isExpanded={expandedSections.appearance} onToggle={() => toggleSection('appearance')}>
             <RangeControl 
               label="FONT SIZE" 
               value={settings.fontSize} 
@@ -1099,7 +1138,7 @@ export default function App() {
             </div>
           </ControlGroup>
 
-          <ControlGroup title="Preprocess">
+          <ControlGroup title="Preprocess" isExpanded={expandedSections.preprocess} onToggle={() => toggleSection('preprocess')}>
             <RangeControl 
               label="CONTRAST" 
               value={settings.contrast} 
@@ -1126,7 +1165,7 @@ export default function App() {
             />
           </ControlGroup>
 
-          <ControlGroup title="Export">
+          <ControlGroup title="Export" isExpanded={expandedSections.export} onToggle={() => toggleSection('export')}>
              {/* Copy/Save*/}
              <div className="grid grid-cols-3 gap-2 mb-2">
                  <button onClick={copyImageToClipboard} disabled={!source || isBusy} className="flex flex-col items-center justify-center gap-1 bg-cyan-900/20 hover:bg-cyan-900/50 border border-cyan-800 hover:border-cyan-400 text-cyan-400 py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
@@ -1189,8 +1228,8 @@ export default function App() {
         </aside>
 
         {/* Canvas Area */}
-        <section className="flex-1 bg-black relative flex items-center justify-center overflow-hidden p-4 md:p-8">
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+        <section className={`flex-1 bg-black relative flex items-center justify-center overflow-hidden ${isFullscreen ? 'p-0' : 'p-4 md:p-8'}`}>
+            <div className={`absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none ${isFullscreen ? 'hidden' : ''}`} />
             
             {/* Overlay */}
             {renderProgress !== null && (
@@ -1202,8 +1241,19 @@ export default function App() {
                 </div>
             )}
 
-            <div className={`relative border border-cyan-900/50 shadow-[0_0_50px_-20px_rgba(34,211,238,0.15)] bg-black max-w-full max-h-full aspect-video flex items-center justify-center w-full ${!source ? 'h-full border-dashed' : ''}`}>
+            <div className={`relative ${isFullscreen ? 'w-full h-full bg-black' : 'border border-cyan-900/50 shadow-[0_0_50px_-20px_rgba(34,211,238,0.15)] bg-black max-w-full max-h-full aspect-video w-full'} flex items-center justify-center ${!source && !isFullscreen ? 'h-full border-dashed' : ''}`}>
                 
+                {/* Fullscreen Toggle Button */}
+                {source && (
+                    <button
+                        onClick={() => setIsFullscreen(!isFullscreen)}
+                        className={`absolute z-40 bg-black/70 hover:bg-black/90 border border-cyan-800 hover:border-cyan-400 text-cyan-400 p-2 rounded-lg transition-all ${isFullscreen ? 'top-4 right-4' : 'top-2 right-2'}`}
+                        title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+                    >
+                        {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                    </button>
+                )}
+
                 {/* Hidden Sources */}
                 <video ref={videoRef} className="hidden" crossOrigin="anonymous" playsInline loop muted={source?.type === 'webcam' ? true : isMuted} />
                 <img ref={imgRef} src={source?.url || undefined} className="hidden" crossOrigin="anonymous" alt="source" />
@@ -1215,12 +1265,12 @@ export default function App() {
                 {/* Visible Preview Canvas (display-sized, no CSS scaling artifacts) */}
                 <canvas 
                     ref={previewCanvasRef}
-                    className={`max-w-full max-h-full w-full h-full object-contain ${!source ? 'hidden' : ''}`}
+                    className={`${isFullscreen ? 'w-full h-full' : 'max-w-full max-h-full w-full h-full'} object-contain ${!source ? 'hidden' : ''}`}
                     style={{ imageRendering: 'pixelated' }}
                 />
 
                 {/* Empty State */}
-                {!source && (
+                {!source && !isFullscreen && (
                     <div className="text-center p-8">
                         <div className="w-20 h-20 bg-cyan-900/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-cyan-500/30 animate-pulse">
                             <Upload size={32} className="text-cyan-400" />
