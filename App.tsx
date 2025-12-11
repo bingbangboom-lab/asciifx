@@ -262,7 +262,7 @@ const ControlGroup = ({
 }) => (
   <div className="mb-6 border-b border-cyan-900/50 pb-4 last:border-0">
     <button 
-      onClick={onToggle}
+      onClick={() => onToggle?.()}
       className="w-full text-cyan-400 font-bold mb-3 text-xs uppercase tracking-widest flex items-center justify-between gap-2 hover:text-cyan-300 transition-colors"
     >
       <span className="flex items-center gap-2">
