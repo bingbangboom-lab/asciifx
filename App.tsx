@@ -89,7 +89,7 @@ const FONT_FAMILIES = {
 };
 
 const DEFAULT_SETTINGS = {
-  fontSize: 16,
+  fontSize: 20,
   fontFamily: 'Menlo, Consolas, Courier New, monospace',
   contrast: 1.4,
   brightness: 1.1,
@@ -997,6 +997,8 @@ export default function App() {
           <h1 className="text-xl font-bold tracking-[0.2em] font-mono">ASCII<span className="text-white">FX</span></h1>
         </div>
         <div className="flex gap-4 text-xs font-mono text-cyan-600">
+          <a href="https://x.com/dingchilling" className="hover:text-cyan-400" target="_blank" rel="noreferrer">made by @dingchilling</a>
+          <a href="https://github.com/bingbangboom-lab/asciifx" className="hover:text-cyan-400" target="_blank" rel="noreferrer">github</a>
           <span>RES: {videoDimensions.width}x{videoDimensions.height}</span>
           <span>{source?.type?.toUpperCase() || 'NONE'}</span>
         </div>
