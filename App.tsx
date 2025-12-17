@@ -841,42 +841,66 @@ export default function App() {
 
       try {
           if (audioBuffer) {
-             setRenderStatus("ENCODING AUDIO...");
-             const audioEncoder = new AudioEncoder({
+            setRenderStatus("ENCODING AUDIO...");
+            const audioEncoder = new AudioEncoder({
                 output: async (chunk, meta) => {
                   if (!audioSource) return;
                   const packet = EncodedPacket.fromEncodedChunk(chunk);
                   await audioSource.add(packet, meta);
                 },
                 error: (e) => console.error(e)
-             });
-             audioEncoder.configure({
-               codec: 'mp4a.40.2',
-               sampleRate: audioBuffer.sampleRate,
-               numberOfChannels: audioBuffer.numberOfChannels,
-               bitrate: 128_000
-             });
-             
-             const numberOfChannels = audioBuffer.numberOfChannels;
-             const length = audioBuffer.length;
-             const sampleRate = audioBuffer.sampleRate;
-             const interleaved = new Float32Array(length * numberOfChannels);
-             for (let i = 0; i < length; i++) {
-                 for (let ch = 0; ch < numberOfChannels; ch++) interleaved[i * numberOfChannels + ch] = audioBuffer.getChannelData(ch)[i];
-             }
-             const chunkSize = sampleRate; 
-             for (let i = 0; i < length; i += chunkSize) {
+            });
+            
+            audioEncoder.configure({
+              codec: 'mp4a.40.2',
+              sampleRate: audioBuffer.sampleRate,
+              numberOfChannels: audioBuffer.numberOfChannels,
+              bitrate: 128_000
+            });
+            
+            const numberOfChannels = audioBuffer.numberOfChannels;
+            const length = audioBuffer.length;
+            const sampleRate = audioBuffer.sampleRate;
+            const chunkSize = Math.floor(sampleRate * 0.1);
+
+            // Cache channel data to avoid repeated lookups in the loop
+            const channels: Float32Array[] = [];
+            for (let i = 0; i < numberOfChannels; i++) {
+                channels.push(audioBuffer.getChannelData(i));
+            }
+
+            // Interleave AND Encode in a single pass
+            for (let i = 0; i < length; i += chunkSize) {
                 const end = Math.min(i + chunkSize, length);
-                const chunkData = interleaved.subarray(i * numberOfChannels, end * numberOfChannels);
+                const frameCount = end - i;
+                
+                const chunkData = new Float32Array(frameCount * numberOfChannels);
+                
+                for (let j = 0; j < frameCount; j++) {
+                    const absIndex = i + j;
+                    for (let ch = 0; ch < numberOfChannels; ch++) {
+                        chunkData[j * numberOfChannels + ch] = channels[ch][absIndex];
+                    }
+                }
+
                 const audioData = new AudioData({
-                    format: 'f32', sampleRate, numberOfFrames: end - i, numberOfChannels,
-                    timestamp: i * 1_000_000 / sampleRate, data: chunkData
+                    format: 'f32', 
+                    sampleRate, 
+                    numberOfFrames: frameCount, 
+                    numberOfChannels,
+                    timestamp: i * 1_000_000 / sampleRate, 
+                    data: chunkData
                 });
+                
                 audioEncoder.encode(audioData);
                 audioData.close();
-             }
-             await audioEncoder.flush();
-             audioEncoder.close();
+                
+                setRenderStatus(`ENCODING AUDIO... ${Math.round((i / length) * 100)}%`);
+                await new Promise(r => setTimeout(r, 0));
+            }
+            
+            await audioEncoder.flush();
+            audioEncoder.close();
           }
 
           setRenderStatus("RENDERING VIDEO...");
